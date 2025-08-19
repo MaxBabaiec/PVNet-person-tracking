@@ -16,7 +16,7 @@ SoftwareSerial SoftSerial(SW_RX, SW_TX);  // RX, TX
 TMC2209Stepper driver(&SoftSerial, R_SENSE, DRIVER_ADDR);
 
 unsigned long lastReceiveTime = 0;
-const unsigned long timeoutThreshold = 5000;
+const unsigned long timeoutThreshold = 500;
 
 void setup() {
   // Setup control pins
@@ -24,7 +24,7 @@ void setup() {
   pinMode(DIR_PIN, OUTPUT);
   pinMode(STEP_PIN, OUTPUT);
 
-  digitalWrite(EN_PIN, LOW);    // Enable driver (active LOW)
+  digitalWrite(EN_PIN, HIGH);    // Enable driver (active LOW)
   digitalWrite(DIR_PIN, HIGH);  // Set initial direction
 
   // Start serial connections
@@ -62,11 +62,12 @@ void loop() {
     float error = Serial.parseFloat() * 4.44;
     lastReceiveTime = millis();
 
-    if (error > 5) {
+    if (error > 10) {
       // turn right
       digitalWrite(DIR_PIN, HIGH);
-      while (error > 5) {
-        for (int i = 0; i < 3; i++) {
+      digitalWrite(EN_PIN, LOW);
+      while (error > 10) {
+        for (int i = 0; i < abs(error/3); i++) {
           digitalWrite(STEP_PIN, HIGH);
           delayMicroseconds(1000);
           digitalWrite(STEP_PIN, LOW);
@@ -77,13 +78,16 @@ void loop() {
           error = Serial.parseFloat() * 4.44;
         }
       }
+    } else {
+      digitalWrite(EN_PIN, HIGH);
     }
 
-    if (error < -5) {
+    if (error < -10) {
       // turn left
       digitalWrite(DIR_PIN, LOW);
-      while (error < -5) {
-        for (int i = 0; i < 3; i++) {
+      digitalWrite(EN_PIN, LOW);
+      while (error < -10) {
+        for (int i = 0; i < abs(error/3); i++) {
           digitalWrite(STEP_PIN, HIGH);
           delayMicroseconds(1000);
           digitalWrite(STEP_PIN, LOW);
@@ -94,33 +98,38 @@ void loop() {
           error = Serial.parseFloat() * 4.44;
         }
       }
+    } else {
+      digitalWrite(EN_PIN, HIGH);
     }
-
-
 
     delay(10);
   }
-  if (millis() - lastReceiveTime >= timeoutThreshold) {
-    if (stepCount > 0) {
-      digitalWrite(DIR_PIN, LOW);
-      angleFromStart = abs(stepCount * 4.44);
-      for (int i = 0; i < abs(stepCount); i++) {
-        digitalWrite(STEP_PIN, HIGH);
-        delayMicroseconds(1000);
-        digitalWrite(STEP_PIN, LOW);
-        delayMicroseconds(1000);
-      }
-      stepCount = 0;
-    } else if (stepCount < 0) {
-      digitalWrite(DIR_PIN, HIGH);
-      angleFromStart = abs(stepCount * 4.44);
-      for (int i = 0; i < abs(stepCount); i++) {
-        digitalWrite(STEP_PIN, HIGH);
-        delayMicroseconds(1000);
-        digitalWrite(STEP_PIN, LOW);
-        delayMicroseconds(1000);
-      }
-      stepCount = 0;
-    }
-  }
+
+  // if (millis() - lastReceiveTime >= timeoutThreshold) {
+  //   if (stepCount > 0) {
+  //     digitalWrite(DIR_PIN, LOW);
+  //     digitalWrite(EN_PIN, LOW);
+  //     angleFromStart = abs(stepCount * 4.44);
+  //     for (int i = 0; i < abs(stepCount); i++) {
+  //       digitalWrite(STEP_PIN, HIGH);
+  //       delayMicroseconds(1000);
+  //       digitalWrite(STEP_PIN, LOW);
+  //       delayMicroseconds(1000);
+  //     }
+  //     digitalWrite(EN_PIN, HIGH);
+  //     stepCount = 0;
+  //   } else if (stepCount < 0) {
+  //     digitalWrite(DIR_PIN, HIGH);
+  //     digitalWrite(EN_PIN, LOW);
+  //     angleFromStart = abs(stepCount * 4.44);
+  //     for (int i = 0; i < abs(stepCount); i++) {
+  //       digitalWrite(STEP_PIN, HIGH);
+  //       delayMicroseconds(1000);
+  //       digitalWrite(STEP_PIN, LOW);
+  //       delayMicroseconds(1000);
+  //     }
+  //     digitalWrite(EN_PIN, HIGH);
+  //     stepCount = 0;
+  //   }
+  // }
 }
