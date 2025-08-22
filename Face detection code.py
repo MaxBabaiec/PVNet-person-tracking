@@ -4,6 +4,7 @@ import os
 import time as t
 import math
 import serial
+import time
 
 # Suppress TensorFlow logging
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
@@ -33,9 +34,10 @@ Cam_CenterY = 540
 
 print("Press 'q' to quit.")
 
-with mp_face.FaceDetection(model_selection=1, min_detection_confidence=0.8) as face:
+with mp_face.FaceDetection(model_selection=1, min_detection_confidence=0.3) as face:
     while cap.isOpened():
         ok, frame = cap.read()
+        frame = cv2.convertScaleAbs(frame, alpha=1.0, beta=30)
         if not ok:
             print("Ignoring empty camera frame.")
             continue
@@ -96,8 +98,9 @@ with mp_face.FaceDetection(model_selection=1, min_detection_confidence=0.8) as f
 
                 # Send angle to Arduino
                 try:
-                    arduino = serial.Serial('/dev/cu.usbserial-10', 1000000)  # Change to your port
+                    arduino = serial.Serial('/dev/cu.usbserial-10', 100000)  # Change to your port
                     arduino.write(f"{lateral_angle_to_face:.2f}\n".encode())
+                    time.sleep(.1)
                 except Exception as e:
                     print(f"[Warning] Could not send to Arduino: {e}")
 
