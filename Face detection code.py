@@ -91,6 +91,7 @@ with mp_face.FaceDetection(model_selection=1, min_detection_confidence=0.3) as f
                 vertical_angle_to_face = math.atan(vertical_dist_from_center / distance_cm) * (180/3.14)
 
                 print(f"Nearest face center: ({x_center}, {y_center}) | "
+                      f"Face Width: {box_width} px | "
                       f"Distance: {distance_cm:.2f} cm ({distance_in:.1f} in) | "
                       f"Abs. Dist {dist_from_center:.2f} cm | "
                       f"Lat. Angle {lateral_angle_to_face:.2f} deg | "
